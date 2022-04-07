@@ -27,5 +27,4 @@ typedef float *					     pf32;
 typedef double *					 pf64;
 typedef long double *			     pf128;
 
-#define NULL						0x00000000
 #endif /* STD_TYPES_H_ */
