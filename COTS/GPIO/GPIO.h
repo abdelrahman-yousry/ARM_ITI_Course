@@ -1,120 +1,179 @@
 /*
- * GPIO.h
+ * Gpio.h
  *
- *  Created on: Mar 19, 2022
- *      Author: U3
+ *  Created on: Apr 4, 2022
+ *      Author: Abdelrahman Yousry
  */
 
 #ifndef GPIO_H_
 #define GPIO_H_
 
 
-/*MODES*/
-/*INPUT*/
-#define GPIO_MODE_INPUT_PUll_UP   		 					0b01000
-#define GPIO_MODE_INPUT_PUll_DOWN			 				0b10000
-#define GPIO_MODE_INPUT_FLOATING							0b00000
-
-/*OUTPUT*/
-#define GPIO_MODE_OUTPUT_PUSHPULL_PULLUP    			 	0b01001
-#define GPIO_MODE_OUTPUT_PUSHPULL_PULLDOWN  			 	0b10001
-#define GPIO_MODE_OUTPUT_PUSHPULL_NO_PULLUP_PULLDOWN   		0b00001
-#define GPIO_MODE_OUTPUT_OPENDRAIN_PULLUP  			 		0b01101
-#define GPIO_MODE_OUTPUT_OPENDRAIN_PULLDOWN 			 	0b10101
-#define GPIO_MODE_OUTPUT_OPENDRAIN_NO_PULLUP_PULLDOWN  		0b00101
-/*AF-reserved-*/
-#define GPIO_MODE_AF_PUSHPULL 				 				0b00010
-#define GPIO_MODE_AF_PUSHPULL_PULLUP						0b01010
-#define GPIO_MODE_AF_PUSHPULL_PULLDOWN						0b10010
-
-#define GPIO_MODE_AF_OPENDRAIN								0b00110
-#define GPIO_MODE_AF_OPENDRAIN_PULLUP						0b01110
-#define GPIO_MODE_AF_OPENDRAIN_PULLDOWN						0b10110
-
-
-/*Analog*/
-#define Analog  		 					0b00011
-
-
-/*SPEED*/
-#define GPIO_SPEED_LOW						0b00
-#define GPIO_SPEED_MEDIUM					0b01
-#define GPIO_SPEED_HIGH						0b10
-#define GPIO_SPEED_VHIGH					0b11
-
-
-/*PINS*/
-#define  GPIO_PIN_0			(u8)0
-#define  GPIO_PIN_1			(u8)1
-#define  GPIO_PIN_2			(u8)2
-#define  GPIO_PIN_3			(u8)3
-#define  GPIO_PIN_4			(u8)4
-#define  GPIO_PIN_5			(u8)5
-#define  GPIO_PIN_6			(u8)6
-#define  GPIO_PIN_7			(u8)7
-#define  GPIO_PIN_8			(u8)8
-#define  GPIO_PIN_9			(u8)9
-#define  GPIO_PIN_10		(u8)10
-#define  GPIO_PIN_11		(u8)11
-#define  GPIO_PIN_12		(u8)12
-#define  GPIO_PIN_13		(u8)13
-#define  GPIO_PIN_14		(u8)14
-#define  GPIO_PIN_15		(u8)15
-
-/*PORTS*/
-/*Base address*/
-#define  GPIO_PORTA		    (u32)0x40021000
-#define  GPIO_PORTB			(u32)0x40020C00
-#define  GPIO_PORTC			(u32)0x40020800
-#define  GPIO_PORTD			(u32)0x40020400
-#define  GPIO_PORTE			(u32)0x40020000
-#define  GPIO_PORTH			(u32)0x40021C00
-
-/*MASKS*/
-#define TWO_BITs_MASK 		0b11
-#define ONE_BIT_MASK    	0b1
-#define FOUR_BITs_MASK		0b1111
-
-/* Set pin values */
-#define HIGH (u8)1
-#define LOW  (u8)0
-
-
-/*Alternative functions macros*/
-
-#define  GPIO_AF0_SYSTEM	     (void*)0x00000000
-#define  GPIO_AF1_TIM_1_2	     (void*)0x00000010
-#define  GPIO_AF2_TIM_3_5	     (void*)0x00000200
-#define  GPIO_AF3_TIM_9_11	     (void*)0x00003000
-#define  GPIO_AF4_I2C_1_3	     (void*)0x00040000
-#define  GPIO_AF5_SPI_1_4	     (void*)0x00500000
-#define  GPIO_AF6_SPI_3		     (void*)0x06000000
-#define  GPIO_AF7_USART_1	     (void*)0x70000000
-#define  GPIO_AF8_USART6	     (void*)0x00000008
-#define  GPIO_AF9_I2C_2_3	     (void*)0x00000090
-#define  GPIO_AF10_OTG_FS	     (void*)0x00000A00
-#define  GPIO_AF12_SDIO		     (void*)0x000C0000
-#define  GPIO_AF15_EVENTOUT	     (void*)0xF0000000
-
-
 typedef struct
 {
+	u8 pin;		//to get the pin
+	u32 port;	// to get the base address
 	u8 mode;
 	u8 speed;
-	u8 pin;
-	void* port;
-}GPIO_tConfig;
+}GpioPinCfg_t;
 
 typedef enum
 {
-	GPIO_enu_OK,
-	GPIO_enu_NOK
-}GPIO_tenuErrorStatus;
+	Gpio_enuNok,
+	Gpio_enuOk,
+	Gpio_enuErrorPin,
+	Gpio_enuPinValError,
+	Gpio_enuNullPtr
+}GpioErrorStatus_t;
+
+/*GPIO PINS*/
+#define GPIO_u8PIN_0     (u8)0
+#define GPIO_u8PIN_1     (u8)1
+#define GPIO_u8PIN_2     (u8)2
+#define GPIO_u8PIN_3     (u8)3
+#define GPIO_u8PIN_4     (u8)4
+#define GPIO_u8PIN_5     (u8)5
+#define GPIO_u8PIN_6     (u8)6
+#define GPIO_u8PIN_7     (u8)7
+#define GPIO_u8PIN_8     (u8)8
+#define GPIO_u8PIN_9     (u8)9
+#define GPIO_u8PIN_10    (u8)10
+#define GPIO_u8PIN_11    (u8)11
+#define GPIO_u8PIN_12    (u8)12
+#define GPIO_u8PIN_13    (u8)13
+#define GPIO_u8PIN_14    (u8)14
+#define GPIO_u8PIN_15    (u8)15
 
 
-GPIO_tenuErrorStatus GPIO_enuInitPinCfg(GPIO_tConfig* Add_Reg);
-GPIO_tenuErrorStatus GPIO_enuSetPinValue(GPIO_tConfig* Add_Reg, u8 Loc_u8PinValue);
-GPIO_tenuErrorStatus GPIO_enuGetPinValue(GPIO_tConfig* Add_Reg, pu8 pu8Add_var);
-GPIO_tenuErrorStatus GPIO_enuSelectAf(GPIO_tConfig* Add_Reg, u32 Copy_u32AlternateValue);
 
+/*Configuration masks to configure the pin
+ * the mask will be in this order
+ * 1-MODE 	  --> Input  			-->00
+ * 			  --> Output 			-->01
+ *	 		  --> AF	 			-->10
+ *	 		  --> Analog 			-->11
+ *
+ * 2-OTYPER   --> Output push-pull  -->0
+ * 			  --> Output open-drain -->1
+ *
+ * 3-PUPDR	  --> No pu,pd 			-->00
+ *                Pull-up           -->01
+ *                Pull-down         -->10
+ *                Reserved          -->11
+ * 		*/
+/*Input*/
+#define GPIO_u8MODE_INPUT_PU   		 		(u32)0b00001000
+#define GPIO_u8MODE_INPUT_PD			 	(u32)0b00010000
+#define GPIO_u8MODE_INPUT					(u32)0b00000000
+/*Output*/
+#define GPIO_u8MODE_OUTPUT_PP_PU    		(u32)0b01001
+#define GPIO_u8MODE_OUTPUT_PP_PD  			(u32)0b10001
+#define GPIO_u8MODE_OUTPUT_PP   			(u32)0b00001
+#define GPIO_u8MODE_OUTPUT_OD_PU  			(u32)0b01101
+#define GPIO_u8MODE_OUTPUT_OD_PD 			(u32)0b10101
+#define GPIO_u8MODE_OUTPUT_OD  				(u32)0b00101
+
+/*Alternate Function*/
+#define GPIO_u8MODE_AF_PP 				 	(u8)0b00010
+#define GPIO_u8MODE_AF_PP_PU				(u8)0b01010
+#define GPIO_u8MODE_AF_PP_PD				(u8)0b10010
+#define GPIO_u8MODE_AF_OD					(u8)0b00110
+#define GPIO_u8MODE_AF_OD_PU				(u8)0b01110
+#define GPIO_u8MODE_AF_OD_PD				(u8)0b10110
+
+ /* OSPEED     --> Low speed         -->00
+			   --> Medium speed      -->01
+			   --> High speed        -->10
+			   --> Very high speed   -->11
+*/
+#define GPIO_u8SPEED_LOW				(u8)0b00
+#define GPIO_u8SPEED_MEDIUM				(u8)0b01
+#define GPIO_u8SPEED_HIGH				(u8)0b10
+#define GPIO_u8SPEED_VHIGH				(u8)0b11
+
+/*Analog*/
+#define GPIO_u8MODE_ANALOG		                 (u8)
+
+/*Macros for AF if we select the pin as an Alternative Function mode*/
+#define GPIO_u8ALTERNATE_FUNC_00		((u8) 0x00)
+#define GPIO_u8ALTERNATE_FUNC_01		((u8) 0x01)
+#define GPIO_u8ALTERNATE_FUNC_02		((u8) 0x02)
+#define GPIO_u8ALTERNATE_FUNC_03		((u8) 0x03)
+#define GPIO_u8ALTERNATE_FUNC_04		((u8) 0x04)
+#define GPIO_u8ALTERNATE_FUNC_05		((u8) 0x05)
+#define GPIO_u8ALTERNATE_FUNC_06		((u8) 0x06)
+#define GPIO_u8ALTERNATE_FUNC_07		((u8) 0x07)
+#define GPIO_u8ALTERNATE_FUNC_08		((u8) 0x08)
+#define GPIO_u8ALTERNATE_FUNC_09		((u8) 0x09)
+#define GPIO_u8ALTERNATE_FUNC_10		((u8) 0x0A)
+#define GPIO_u8ALTERNATE_FUNC_11		((u8) 0x0B)
+#define GPIO_u8ALTERNATE_FUNC_12		((u8) 0x0C)
+#define GPIO_u8ALTERNATE_FUNC_13		((u8) 0x0D)
+#define GPIO_u8ALTERNATE_FUNC_14		((u8) 0x0E)
+#define GPIO_u8ALTERNATE_FUNC_15		((u8) 0x0F)
+
+/*GPIOs Base Address*/
+#define GPIO_A							(volatile void*)0x40020000
+#define GPIO_B							(volatile void*)0x40020400
+#define GPIO_C							(volatile void*)0x40020800
+#define GPIO_D							(volatile void*)0x40020C00
+#define GPIO_E							(volatile void*)0x40021000
+#define GPIO_H							(volatile void*)0x40021C00
+
+
+/*macros for pin value*/
+#define GPIO_u8PIN_HIGH					(u8)1
+#define GPIO_u8PIN_LOW					(u8)0
+
+
+/*It will be like port init in avr*/
+/****************************************************************
+ * Description: 		this function to init GPIO pin
+ *
+ * input args: 			copy_strAdd --> struct contain of :-
+ * 						1-u8 pin	-->> the pin number
+						2-u32 port  -->> the port (BASE ADDRESS:- GPIO_x which x may be A,B,C,D,E,H)
+						3-u8 mode	-->> the mode to determine the mode of the pin
+						and it is a macro contain of 3 modes like : -Input/Output -- Push Pull/Open Drain -- pull up/ pull down ..
+						 and they are in different regs
+
+						4-u8 speed: - the speed of pin and it is option of: -
+						LOW	/MEDIUM /HIGH /VHIGH
+ *
+ * Return type: 		GpioErrorStatus_t for checking and make validation on the input arg
+ * 						if it correct it will return Rcc_enuOk
+ * 						else will return one of these options
+ * 						Rcc_enuNok /Gpio_enuNok /Gpio_enuErrorPin /Gpio_enuPinValError /Gpio_enuNullPtr
+ *
+ * */
+GpioErrorStatus_t Gpio_enuInit(GpioPinCfg_t * copy_strAdd);
+
+
+/****************************************************************
+ * Description: 		this function to set GPIO pin
+ *
+ * input args: 			1-*copy_u8port -->> the port (BASE ADDRESS:- GPIO_x which x may be A,B,C,D,E,H)
+						2-copy_u8pin   -->>	the pin number
+						3-copy_u8Value -->> the pin value (High/ Low)
+
+ * Return type: 		GpioErrorStatus_t for checking and make validation on the input arg
+ * 						if it correct it will return Rcc_enuOk
+ * 						else will return one of these options
+ * 						Rcc_enuNok /Gpio_enuNok /Gpio_enuErrorPin /Gpio_enuPinValError /Gpio_enuNullPtr
+ *
+ * */
+GpioErrorStatus_t Gpio_enuSetPinValue(void* copy_u8port,u8 copy_u8pin ,u8 copy_u8Value);
+/****************************************************************
+ * Description: 		this function to set GPIO pin
+ *
+ * input args: 			1-*copy_u8port -->> the port (BASE ADDRESS:- GPIO_x which x may be A,B,C,D,E,H)
+						2-copy_u8pin   -->>	the pin number
+						3-*copy_u8Value -->> to get the pin val (High/ Low)
+
+ * Return type: 		GpioErrorStatus_t for checking and make validation on the input arg
+ * 						if it correct it will return Rcc_enuOk
+ * 						else will return one of these options
+ * 						Rcc_enuNok /Gpio_enuNok /Gpio_enuErrorPin /Gpio_enuPinValError /Gpio_enuNullPtr
+ * */
+GpioErrorStatus_t Gpio_enuGetPinValue(void* copy_u8port,u8 copy_u8pin ,u8* copy_u8Value);
 #endif /* GPIO_H_ */

@@ -1,136 +1,125 @@
 /*
- * GPIO.c
+ * Gpio.c
  *
- *  Created on: Mar 19, 2022
- *      Author: U3
+ *  Created on: Apr4, 2022
+ *      Author: Abdelrahman Yousry
  */
 #include "Std_types.h"
-#include"GPIO.h"
+#include "Gpio.h"
+#include "Gpio_prv.h"
 
-typedef struct
+/*
+ * GpioPinCfg_t pincfg;
+ * pincfg.pin  = PIN_0;
+ * pincfg.port = GPIO_A;
+ * pincfg.mode = GPIO_u8MODE_OUTPUT_PP_PU;
+ * pincfg.speed= GPIO_u8SPEED_LOW;
+ * */
+
+GpioErrorStatus_t Gpio_enuInit(GpioPinCfg_t * copy_strAdd)
 {
-	u32 GPIOx_MODER;
-	u32 GPIOx_OTYPER;
-	u32 GPIOx_OSPEEDR;
-	u32 GPIOx_PUPDR;
-	u32 GPIOx_IDR;
-	u32 GPIOx_ODR;
-	u32 GPIOx_BSRR;
-	u32 GPIOx_LCKR;
-	u32 GPIOx_AFRL;
-	u32 GPIOx_AFRH;
-}GPIO_tReg;
-
-#define MAX_PIN_NUMBERS 15
-
-GPIO_tenuErrorStatus GPIO_enuInitPinCfg(GPIO_tConfig* Add_Reg)
-{
-	GPIO_tenuErrorStatus Loc_StatusError = GPIO_enu_OK;
-	if((Add_Reg->pin)>MAX_PIN_NUMBERS)
+	GpioErrorStatus_t Loc_ErrorStatus = Gpio_enuNok;
+	if(copy_strAdd == NULL)
 	{
-		Loc_StatusError = GPIO_enu_NOK;
-	}
-	u32 Loc_u32TempReg;
-	/*SET MODE*/
-	Loc_u32TempReg=((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_MODER;
-	Loc_u32TempReg&=(~TWO_BITs_MASK)<<(Add_Reg->pin*2);
-	Loc_u32TempReg|=((Add_Reg->mode)&TWO_BITs_MASK)<<(Add_Reg->pin*2);
-	((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_MODER = Loc_u32TempReg;
-
-	/*SET_TYPE (OUPUT (PUSH-PULL/OPENDRAIN))*/
-	Loc_u32TempReg=((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_OTYPER;
-	Loc_u32TempReg=(~ONE_BIT_MASK<<(Add_Reg->pin));
-	Loc_u32TempReg|=((Add_Reg->mode)>>2)&ONE_BIT_MASK<<(Add_Reg->pin);
-	((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_OTYPER = Loc_u32TempReg;
-
-	/*SET_PUDR*/
-	Loc_u32TempReg=((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_PUPDR;
-	Loc_u32TempReg=(~TWO_BITs_MASK<<(Add_Reg->pin*2));
-	Loc_u32TempReg|=((Add_Reg->mode)>>3)&TWO_BITs_MASK<<(Add_Reg->pin*2);
-	((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_PUPDR = Loc_u32TempReg;
-
-	/*SET_SPEED*/
-	Loc_u32TempReg=((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_OSPEEDR;
-	Loc_u32TempReg&=(~TWO_BITs_MASK)<<(Add_Reg->pin*2);
-	Loc_u32TempReg|=((Add_Reg->speed)&TWO_BITs_MASK)<<(Add_Reg->pin*2);
-	((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_OSPEEDR=Loc_u32TempReg;
-	return Loc_StatusError;
-}
-
-
-GPIO_tenuErrorStatus GPIO_enuSetPinValue(GPIO_tConfig* Add_Reg, u8 Loc_u8PinValue)
-{
-	GPIO_tenuErrorStatus Loc_StatusError = GPIO_enu_OK;
-	if(Add_Reg == NULL)
-	{
-		Loc_StatusError = GPIO_enu_NOK;
-	}
-	if((Add_Reg->pin)>MAX_PIN_NUMBERS)
-	{
-		Loc_StatusError = GPIO_enu_NOK;
+		Loc_ErrorStatus = Gpio_enuNullPtr;
 	}
 	else
 	{
-		switch (Loc_u8PinValue)
+		Loc_ErrorStatus = Gpio_enuOk;
+		u32 Loc_temp;
+		//*Moder*//
+		Loc_temp  = ((GpioReg_t*)copy_strAdd->port)->GPIOx_MODER;
+		//we should first clear the two bits want to be assigned
+		Loc_temp &= (~MODER_MASK) << ((copy_strAdd->pin)*2);
+		//then assign your value after getting it by make |
+		Loc_temp |= (MODER_MASK&(copy_strAdd->mode))<<((copy_strAdd->pin)*2);
+		//put your config in the register
+		((GpioReg_t*)copy_strAdd->port)->GPIOx_MODER = Loc_temp;
+
+
+		//*OTYPER*//
+		Loc_temp  = ((GpioReg_t*)copy_strAdd->port)->GPIOx_OTYPER;
+		//we should first clear the two bits want to be assigned
+		Loc_temp &= (~OTYPER_MASK) << ((copy_strAdd->pin));
+		//then assign your value after getting it by make |
+		Loc_temp |= (OTYPER_MASK&copy_strAdd->mode)<<((copy_strAdd->pin));
+		//put your config in the register
+		((GpioReg_t*)copy_strAdd->port)->GPIOx_OTYPER = Loc_temp;
+
+
+		//*PUPDR*//
+		Loc_temp  = ((GpioReg_t*)copy_strAdd->port)->GPIOx_PUPDR;
+		//we should first clear the two bits want to be assigned
+		Loc_temp &= (~PUPDR_MASK) << ((copy_strAdd->pin)*2);
+		//then assign your value after getting it by make |
+		Loc_temp |= (PUPDR_MASK&(copy_strAdd->mode)>>3)<<((copy_strAdd->pin)*2);
+		//put your config in the register
+		((GpioReg_t*)copy_strAdd->port)->GPIOx_PUPDR = Loc_temp;
+
+
+		//*OSPEEDR*//
+		Loc_temp  = ((GpioReg_t*)copy_strAdd->port)->GPIOx_OSPEEDR;
+		//we should first clear the two bits want to be assigned
+		Loc_temp &= (~SPEEDR_MASK) << ((copy_strAdd->pin)*2);
+		//then assign your value after getting it by make |
+		Loc_temp |= (SPEEDR_MASK&(copy_strAdd->speed))<<((copy_strAdd->pin)*2);
+		//put your config in the register
+		((GpioReg_t*)copy_strAdd->port)->GPIOx_OSPEEDR = Loc_temp;
+	}
+	return Loc_ErrorStatus;
+}
+
+
+GpioErrorStatus_t Gpio_enuSetPinValue(void* copy_u8port,u8 copy_u8pin ,u8 copy_u8Value)
+{
+	GpioErrorStatus_t Loc_ErrorStatus = Gpio_enuNok;
+	if(copy_u8port == NULL)
+	{
+		Loc_ErrorStatus = Gpio_enuNullPtr;
+	}
+	if(copy_u8pin> GPIO_u8PIN_15)
+	{
+		Loc_ErrorStatus = Gpio_enuErrorPin;
+	}
+	if(copy_u8Value>GPIO_u8PIN_HIGH)
+	{
+		Loc_ErrorStatus = Gpio_enuPinValError;
+	}
+	else{
+		Loc_ErrorStatus = Gpio_enuOk;
+		switch(copy_u8Value)
 		{
-		case HIGH:
-			((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_BSRR = (ONE_BIT_MASK<<(Add_Reg->pin));
-			break ;
-		case LOW:
-			((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_BSRR = (ONE_BIT_MASK<<(Add_Reg->pin)+16);
+		case GPIO_u8PIN_HIGH:
+			((GpioReg_t*)copy_u8port)->GPIOx_BSRR=(copy_u8Value<<(copy_u8pin));
+			break;
+		case GPIO_u8SPEED_LOW:
+			((GpioReg_t*)copy_u8port)->GPIOx_BSRR=((copy_u8Value+1)<<(copy_u8pin+16));
+			break;
+		default:
+			/*do nothing*/
 			break;
 		}
-	}
-	return Loc_StatusError ;
-}
 
-GPIO_tenuErrorStatus GPIO_enuGetPinValue(GPIO_tConfig* Add_Reg, pu8 pu8Add_var)
-{
-
-	GPIO_tenuErrorStatus Loc_StatusError = GPIO_enu_OK;
-	if((Add_Reg->pin)>MAX_PIN_NUMBERS)
-	{
-		Loc_StatusError = GPIO_enu_NOK;
 	}
-	else
-	{
-		*pu8Add_var = ((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_IDR >>(Add_Reg->pin);
-		*pu8Add_var &= ONE_BIT_MASK;
-	}
-	return Loc_StatusError ;
+	return Loc_ErrorStatus;
 }
 
 
-/*Alternative Function*/
-GPIO_tenuErrorStatus GPIO_enuSelectAf(GPIO_tConfig* Add_Reg, u32 Copy_u32AlternateValue)
+GpioErrorStatus_t Gpio_enuGetPinValue(void* copy_u8port,u8 copy_u8pin ,u8* copy_u8Value)
 {
-	GPIO_tenuErrorStatus Loc_StatusError = GPIO_enu_OK;
-	if(Add_Reg == NULL)
+	GpioErrorStatus_t Loc_ErrorStatus = Gpio_enuNok;
+	if(copy_u8port == NULL ||copy_u8Value==NULL)
 	{
-		Loc_StatusError = GPIO_enu_NOK;
+		Loc_ErrorStatus = Gpio_enuNullPtr;
 	}
-	else if((Add_Reg->pin)>MAX_PIN_NUMBERS)
+	if(copy_u8pin> GPIO_u8PIN_15)
 	{
-		Loc_StatusError = GPIO_enu_NOK;
+		Loc_ErrorStatus = Gpio_enuErrorPin;
 	}
+	else{
+		Loc_ErrorStatus = Gpio_enuOk;
+		*copy_u8Value=((((GpioReg_t*)copy_u8port)->GPIOx_IDR)>>copy_u8pin)&1;
 
-	else
-	{
-		u32 Loc_u32RegValue =0;
-		if(Copy_u32AlternateValue<8)
-		{
-			Loc_u32RegValue=((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_AFRL;
-			Loc_u32RegValue&=~(FOUR_BITs_MASK<<Add_Reg->pin);
-			Loc_u32RegValue|=Copy_u32AlternateValue;
-			((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_AFRL=Loc_u32RegValue;
-		}
-		else
-		{
-			Loc_u32RegValue=((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_AFRH;
-			Loc_u32RegValue&=~(FOUR_BITs_MASK<<Add_Reg->pin);
-			Loc_u32RegValue|=Copy_u32AlternateValue;
-			((volatile GPIO_tReg*)Add_Reg->port)->GPIOx_AFRH=Loc_u32RegValue;
-		}
 	}
-	return Loc_StatusError;
+	return Loc_ErrorStatus;
 }
