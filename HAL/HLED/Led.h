@@ -76,7 +76,7 @@ extern Led_enuErrorStatus_t Led_enuInit(void);
  *							led_enuInvalidOtype,
  *							led_enuInvalidState
  * */
-// u16 --> 2na keda b2ool dmnyn 2n 3dd la nha2i mn 2l leds
+
 extern Led_enuErrorStatus_t Led_enuSetState(u16 copy_u16ledNum, u8 copy_u8ledState);
 
 #endif /* LED_H_ */
