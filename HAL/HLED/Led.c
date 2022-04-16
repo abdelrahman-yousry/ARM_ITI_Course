@@ -7,8 +7,11 @@
 
 #include "Std_types.h"
 #include "Gpio.h"
+#include "Rcc.h"
 #include "Led.h"
 #include "Led_cfg.h"
+
+
 
 /*variable which is declared in the led_cfg.c file for user led configuration*/
 extern const LedCfg_t Leds_strCfg[];
@@ -25,6 +28,7 @@ extern Led_enuErrorStatus_t Led_enuInit(void)
 				||Leds_strCfg[iterator].port==GPIO_B
 				||Leds_strCfg[iterator].port==GPIO_C)
 		{
+
 			Loc_strGpioCfg.port=Leds_strCfg[iterator].port;
 		}
 		else
@@ -33,7 +37,7 @@ extern Led_enuErrorStatus_t Led_enuInit(void)
 		}
 		if(Leds_strCfg[iterator].pin<=GPIO_u8PIN_15)
 		{
-			Loc_strGpioCfg.pin=GPIO_u8PIN_0;
+			Loc_strGpioCfg.pin=Leds_strCfg[iterator].pin;
 		}
 		else
 		{
@@ -44,7 +48,7 @@ extern Led_enuErrorStatus_t Led_enuInit(void)
 		{
 			Loc_strGpioCfg.mode=GPIO_u8MODE_OUTPUT_PP;
 		}
-		if(Leds_strCfg[iterator].otype==LED_OTYPE_PP)
+		if(Leds_strCfg[iterator].otype==LED_OTYPE_OD)
 		{
 			Loc_strGpioCfg.mode=GPIO_u8MODE_OUTPUT_OD;
 		}
@@ -66,7 +70,7 @@ extern Led_enuErrorStatus_t Led_enuSetState(u16 copy_u16ledNum, u8 copy_u8ledSta
 	if((Leds_strCfg[copy_u16ledNum].activeState==LED_ACTIVE_STATE_HIGH)||
 			(Leds_strCfg[copy_u16ledNum].activeState==LED_ACTIVE_STATE_LOW))
 	{
-		Gpio_enuSetPinValue(Leds_strCfg[copy_u16ledNum].port,Leds_strCfg[copy_u16ledNum].pin,(copy_u8ledState^Leds_strCfg[copy_u16ledNum].activeState));
+		Gpio_enuSetPinValue(Leds_strCfg[copy_u16ledNum].port,Leds_strCfg[copy_u16ledNum].pin,((copy_u8ledState)^(Leds_strCfg[copy_u16ledNum].activeState)));
 	}
 	else
 	{
