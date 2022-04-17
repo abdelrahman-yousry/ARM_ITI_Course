@@ -12,7 +12,7 @@
 typedef struct
 {
 	u8 pin;		//to get the pin
-	u32 port;	// to get the base address
+	void* port;	// to get the base address
 	u8 mode;
 	u8 speed;
 }GpioPinCfg_t;
@@ -92,7 +92,7 @@ typedef enum
 #define GPIO_u8SPEED_VHIGH				(u8)0b11
 
 /*Analog*/
-#define GPIO_u8MODE_ANALOG		                 (u8)
+#define GPIO_u8MODE_ANALOG		        (u8)
 
 /*Macros for AF if we select the pin as an Alternative Function mode*/
 #define GPIO_u8ALTERNATE_FUNC_00		((u8) 0x00)
@@ -112,6 +112,7 @@ typedef enum
 #define GPIO_u8ALTERNATE_FUNC_14		((u8) 0x0E)
 #define GPIO_u8ALTERNATE_FUNC_15		((u8) 0x0F)
 
+
 /*GPIOs Base Address*/
 #define GPIO_A							(volatile void*)0x40020000
 #define GPIO_B							(volatile void*)0x40020400
@@ -119,6 +120,7 @@ typedef enum
 #define GPIO_D							(volatile void*)0x40020C00
 #define GPIO_E							(volatile void*)0x40021000
 #define GPIO_H							(volatile void*)0x40021C00
+
 
 
 /*macros for pin value*/
@@ -167,13 +169,13 @@ GpioErrorStatus_t Gpio_enuSetPinValue(void* copy_u8port,u8 copy_u8pin ,u8 copy_u
  * Description: 		this function to set GPIO pin
  *
  * input args: 			1-*copy_u8port -->> the port (BASE ADDRESS:- GPIO_x which x may be A,B,C,D,E,H)
-						2-copy_u8pin   -->>	the pin number
-						3-*copy_u8Value -->> to get the pin val (High/ Low)
+						2-copy_u16pin   -->>	the pin number
+						3-*copy_pu32Value -->> to get the pin val (High/ Low)
 
  * Return type: 		GpioErrorStatus_t for checking and make validation on the input arg
  * 						if it correct it will return Rcc_enuOk
  * 						else will return one of these options
  * 						Rcc_enuNok /Gpio_enuNok /Gpio_enuErrorPin /Gpio_enuPinValError /Gpio_enuNullPtr
  * */
-GpioErrorStatus_t Gpio_enuGetPinValue(void* copy_u8port,u8 copy_u8pin ,u8* copy_u8Value);
+GpioErrorStatus_t Gpio_enuGetPinValue(void* copy_u8port,u16 copy_u16pin ,pu32 copy_pu32Value);
 #endif /* GPIO_H_ */

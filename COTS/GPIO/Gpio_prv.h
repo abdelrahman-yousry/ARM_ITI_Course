@@ -25,9 +25,12 @@ typedef struct
 }GpioReg_t;
 
 
+
+
 #define MODER_MASK	0b00000011
 #define OTYPER_MASK	0b00000001
 #define PUPDR_MASK	0b00000011
 #define SPEEDR_MASK 0b00000011
 
+#define OTYPER_CLEAR	2
 #endif /* GPIO_PRV_H_ */

@@ -30,19 +30,19 @@ GpioErrorStatus_t Gpio_enuInit(GpioPinCfg_t * copy_strAdd)
 		//*Moder*//
 		Loc_temp  = ((GpioReg_t*)copy_strAdd->port)->GPIOx_MODER;
 		//we should first clear the two bits want to be assigned
-		Loc_temp &= (~MODER_MASK) << ((copy_strAdd->pin)*2);
+		Loc_temp &=(u32) (~MODER_MASK) << ((copy_strAdd->pin)*2);
 		//then assign your value after getting it by make |
-		Loc_temp |= (MODER_MASK&(copy_strAdd->mode))<<((copy_strAdd->pin)*2);
+		Loc_temp |=(u32) (MODER_MASK&(copy_strAdd->mode))<<((copy_strAdd->pin)*2);
 		//put your config in the register
 		((GpioReg_t*)copy_strAdd->port)->GPIOx_MODER = Loc_temp;
 
 
 		//*OTYPER*//
 		Loc_temp  = ((GpioReg_t*)copy_strAdd->port)->GPIOx_OTYPER;
-		//we should first clear the two bits want to be assigned
-		Loc_temp &= (~OTYPER_MASK) << ((copy_strAdd->pin));
+		//we should first clear bit want to be assigned
+		Loc_temp &= (u32)(~(OTYPER_MASK) << ((copy_strAdd->pin)));
 		//then assign your value after getting it by make |
-		Loc_temp |= (OTYPER_MASK&copy_strAdd->mode)<<((copy_strAdd->pin));
+		Loc_temp |=(u32) ((OTYPER_CLEAR&copy_strAdd->mode)>>OTYPER_CLEAR)<<((copy_strAdd->pin));
 		//put your config in the register
 		((GpioReg_t*)copy_strAdd->port)->GPIOx_OTYPER = Loc_temp;
 
@@ -50,9 +50,9 @@ GpioErrorStatus_t Gpio_enuInit(GpioPinCfg_t * copy_strAdd)
 		//*PUPDR*//
 		Loc_temp  = ((GpioReg_t*)copy_strAdd->port)->GPIOx_PUPDR;
 		//we should first clear the two bits want to be assigned
-		Loc_temp &= (~PUPDR_MASK) << ((copy_strAdd->pin)*2);
+		Loc_temp &=(u32) (~PUPDR_MASK) << ((copy_strAdd->pin)*2);
 		//then assign your value after getting it by make |
-		Loc_temp |= (PUPDR_MASK&(copy_strAdd->mode)>>3)<<((copy_strAdd->pin)*2);
+		Loc_temp |= (u32)(PUPDR_MASK&(copy_strAdd->mode)>>3)<<((copy_strAdd->pin)*2);
 		//put your config in the register
 		((GpioReg_t*)copy_strAdd->port)->GPIOx_PUPDR = Loc_temp;
 
@@ -60,15 +60,23 @@ GpioErrorStatus_t Gpio_enuInit(GpioPinCfg_t * copy_strAdd)
 		//*OSPEEDR*//
 		Loc_temp  = ((GpioReg_t*)copy_strAdd->port)->GPIOx_OSPEEDR;
 		//we should first clear the two bits want to be assigned
-		Loc_temp &= (~SPEEDR_MASK) << ((copy_strAdd->pin)*2);
+		Loc_temp &=(u32) (~SPEEDR_MASK) << ((copy_strAdd->pin)*2);
 		//then assign your value after getting it by make |
-		Loc_temp |= (SPEEDR_MASK&(copy_strAdd->speed))<<((copy_strAdd->pin)*2);
+		Loc_temp |=(u32) (SPEEDR_MASK&(copy_strAdd->speed))<<((copy_strAdd->pin)*2);
 		//put your config in the register
 		((GpioReg_t*)copy_strAdd->port)->GPIOx_OSPEEDR = Loc_temp;
 	}
 	return Loc_ErrorStatus;
 }
 
+// hwa 2na lma b3ml cast ll address 2noh pointer keda 2na b2ol 2n 2l value deh 3obara 3n address bas sa7 ?
+// tab lw get b3t 2l #define dah l func k arg hal 2l mfrood 2st2bloh f pointer ??
+
+// void to let the func generic
+// so if we change the mcu and have reg in the another mcu its width is 64 bit so this function will work also
+// and inside the function we will cast this void pointer ..!! ? bas keda generic 2zai w 2na htdar 28ayar f 2l imp
+// l2n 3la 7asab 3rd 2l reg h3ml cast!!!
+//GpioErrorStatus_t Gpio_enuSetPinValue(void* copy_u8port,u8 copy_u8pin ,u8 copy_u8Value)
 
 GpioErrorStatus_t Gpio_enuSetPinValue(void* copy_u8port,u8 copy_u8pin ,u8 copy_u8Value)
 {
@@ -90,9 +98,10 @@ GpioErrorStatus_t Gpio_enuSetPinValue(void* copy_u8port,u8 copy_u8pin ,u8 copy_u
 		switch(copy_u8Value)
 		{
 		case GPIO_u8PIN_HIGH:
-			((GpioReg_t*)copy_u8port)->GPIOx_BSRR=(copy_u8Value<<(copy_u8pin));
+			// goz2yt 2l volatile 3awz 2s2al feehA
+			((GpioReg_t*)copy_u8port)->GPIOx_BSRR=((copy_u8Value)<<(copy_u8pin));
 			break;
-		case GPIO_u8SPEED_LOW:
+		case GPIO_u8PIN_LOW:
 			((GpioReg_t*)copy_u8port)->GPIOx_BSRR=((copy_u8Value+1)<<(copy_u8pin+16));
 			break;
 		default:
@@ -105,20 +114,20 @@ GpioErrorStatus_t Gpio_enuSetPinValue(void* copy_u8port,u8 copy_u8pin ,u8 copy_u
 }
 
 
-GpioErrorStatus_t Gpio_enuGetPinValue(void* copy_u8port,u8 copy_u8pin ,u8* copy_u8Value)
+GpioErrorStatus_t Gpio_enuGetPinValue(void* copy_u8port,u16 copy_u16pin ,pu32 copy_pu32Value)
 {
 	GpioErrorStatus_t Loc_ErrorStatus = Gpio_enuNok;
-	if(copy_u8port == NULL ||copy_u8Value==NULL)
+	if(copy_u8port == NULL ||copy_pu32Value==NULL)
 	{
 		Loc_ErrorStatus = Gpio_enuNullPtr;
 	}
-	if(copy_u8pin> GPIO_u8PIN_15)
+	if(copy_u16pin> GPIO_u8PIN_15)
 	{
 		Loc_ErrorStatus = Gpio_enuErrorPin;
 	}
 	else{
 		Loc_ErrorStatus = Gpio_enuOk;
-		*copy_u8Value=((((GpioReg_t*)copy_u8port)->GPIOx_IDR)>>copy_u8pin)&1;
+		*copy_pu32Value=((((GpioReg_t*)copy_u8port)->GPIOx_IDR)>>copy_u16pin)&1;
 
 	}
 	return Loc_ErrorStatus;
