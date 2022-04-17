@@ -12,10 +12,7 @@
 
 /*Here you should configure your LED according to the number of leds
  * you listed in the LED_CFG.h file
- * and it is a constant variable for two reasons
- * 1- not to be reserved in RAM and FLASH
- * 2- not to be configured in the runtime
- * */
+*/
 const SwitchCfg_t Switches_strCfg[SWITCH_NUM]=
 {
 		[SWITCH_0]={

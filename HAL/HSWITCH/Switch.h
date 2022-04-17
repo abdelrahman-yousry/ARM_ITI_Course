@@ -13,6 +13,7 @@ typedef enum
 {
 	Switch_enuNok,
 	Switch_enuOk,
+	Switch_enuNullPointer,
 	Switch_enuInvalidPort,
     Switch_enuInvalidPin,
     Switch_enuInvalidPupdConfig
@@ -37,42 +38,41 @@ typedef struct
 
 /**/
 /****************************************************************
- * Description: 		this function to set init Leds defined by the user
+ * Description: 		this function to set init array of Switches defined by the user
  *
  * input args: 			void
 
- * Return type: 		Led_enuErrorStatus_t for checking and make validation on the input arg
- * 						if it correct it will return Led_enuOk
+ * Return type: 		Switch_enuErrorStatus_t for checking and make validation on the input arg
+ * 						if it correct it will return Switch_enuOk
  * 						else will return one of these options
- * 							led_enuNok,
-							led_enuOk,
-							led_enuInvalidPort,
-							led_enuInvalidPin,
-							led_enuInvalidOtype,
-							led_enuInvalidState
+ * 							Switch_enuNok,
+							Switch_enuOk,
+							Switch_enuInvalidPort,
+							Switch_enuInvalidPin,
+							Switch_enuInvalidPupdConfig
+
  * */
 Switch_enuErrorStatus_t Switch_enuInit(void);
 /****************************************************************
- * Description: 		this function to set state for specific Led
+ * Description: 		this function to set state for specific Switch
  *
- * input args: 			1- u16 copy_u16ledNum ---> Led number
- * 						2- u8 copy_u8ledState ---> Led state (LED_STATE_ON/LED_STATE_OFF)
+ * input args: 			1- u16 copy_u16SwitchNum ---> Switch number
+ * 						2- pu8 copy_pu8Result ---> pointer for getting the result
  *
 
- * Return type: 		Led_enuErrorStatus_t for checking and make validation on the input arg
- * 						if it correct it will return Led_enuOk
+ * Return type: 		Switch_enuErrorStatus_t for checking and make validation on the input arg
+ * 						if it correct it will return Switch_enuOk
  * 						else will return one of these options
- * 							led_enuNok,
- *							led_enuOk,
- *							led_enuInvalidPort,
- *	 						led_enuInvalidPin,
- *							led_enuInvalidOtype,
- *							led_enuInvalidState
+ * 							Switch_enuNok,
+ *							Switch_enuOk,
+ *							Switch_enuInvalidPort,
+ *	 						Switch_enuInvalidPin,
+ *							Switch_enuInvalidPupdConfig
+ *
  * */
-// u16 --> 2na keda b2ool dmnyn 2n 3dd la nha2i mn 2l leds
 Switch_enuErrorStatus_t Switch_enuGetState(u16 copy_u16SwitchNum,pu8 copy_pu8Result);
 
-
+extern void Switch_Task(void);
 
 
 
