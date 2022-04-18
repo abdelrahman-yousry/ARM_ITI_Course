@@ -8,10 +8,7 @@
 #ifndef SCHED_H_
 #define SCHED_H_
 
-/*You should follow this sequence when using this driver
- * 1-call Sched_vidInit() func
- * 2-call
- * */
+
 
 
 typedef enum
@@ -20,14 +17,6 @@ typedef enum
 	Sched_enuNullPointer
 }Sched_tenuErrorStatus;
 
-typedef struct
-{
-	void(*cbf)(void);
-	u32 CyclicTimeMs;
-
-}Sched_tstrRunnable;
-
-void Sched_vidInit(void);
 /****************************************************************
 * Description: 	this function to init the sched by initialize the systick timer
 *
@@ -39,6 +28,15 @@ void Sched_vidInit(void);
 *
 * Return type: 	Sched_tenuErrorStatus
 * */
+typedef struct
+{
+	void(*cbf)(void);
+	u32 CyclicTimeMs;
+
+}Sched_tstrRunnable;
+
+void Sched_vidInit(void);
+
 /****************************************************************
 * Description: 	this function to register the call back function
 *
