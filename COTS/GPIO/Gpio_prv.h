@@ -26,11 +26,14 @@ typedef struct
 
 
 
+#define ONE_BIT_MASK 	0b00000001U	//for clearing the req bits
+#define TWO_BIT_MASK 	0b00000011U	//for clearing the required bits
+#define FOUR_BIT_MASK	0b00001111U
 
-#define MODER_MASK	0b00000011
-#define OTYPER_MASK	0b00000001
-#define PUPDR_MASK	0b00000011
-#define SPEEDR_MASK 0b00000011
+#define MODER_MASK	0b00000011U		//for getting the specific config from macro
+#define OTYPER_MASK	0b00000100U
+#define PUPDR_MASK	0b00011000U
+#define SPEEDR_MASK 0b00000011U
 
-#define OTYPER_CLEAR	2
+#define ALTERNATIVE_FUNCTION_MODE	0x02
 #endif /* GPIO_PRV_H_ */
