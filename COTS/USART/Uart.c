@@ -8,11 +8,8 @@
 #include "Uart.h"
 #include "Uart_prv.h"
 
-
-pcbf Uart_pcbfManCbf[3];// this array to save the Hal call function
-// in the HAl call back function it will be the logic which is checking on the bsy flag
-// and if true call Appcall back function
-// else complete sending the buffer
+/*Global Array for saving the address of the call back funcs */
+pcbf Uart_pcbfManCbf[3];
 
 
 Usart_tenuErrorStatus Uart_enuInit(Uart_tCfg* copy_UartCfg)
@@ -26,16 +23,17 @@ Usart_tenuErrorStatus Uart_enuInit(Uart_tCfg* copy_UartCfg)
 	u32 UsartMantissa= 0 ;// for calc the mantissa which is the correct number
 	u32 UsartFraction = 0;// for cal the fraction number
 	Uart_tstrReg* Loc_ptrReg = copy_UartCfg->Usart_pvChannel ;
-	if(copy_UartCfg->Usart_u32OverSampling==USART_u16MASK_OVERSAMPLING_16)
+	if(copy_UartCfg->Usart_u16OverSampling==USART_u16MASK_OVERSAMPLING_16)
 	{
-		UsartDiv = (u32)( ((u64)((u64)copy_UartCfg->Usart_u32Clock)*1000)/(16*copy_UartCfg->Usart_u32BaudRate));
+		/*Tx/Rx baud = fCK/8 × (2 – OVER8) × USARTDIV*/
+		UsartDiv = (u32)(((u64)((u64)copy_UartCfg->Usart_u64Clock)*1000)/(16*copy_UartCfg->Usart_u16BaudRate));
 		UsartFraction = UsartDiv%1000;
 		UsartFraction *=16 ;
 	}
-	else if(copy_UartCfg->Usart_u32OverSampling==USART_u16MASK_OVERSAMPLING_8)
+	else if(copy_UartCfg->Usart_u16OverSampling==USART_u16MASK_OVERSAMPLING_8)
 	{
 		//16000000000/8*9600=208 333
-		UsartDiv =(u32)( ((u64)((u64)copy_UartCfg->Usart_u32Clock)*1000)/(8*copy_UartCfg->Usart_u32BaudRate));
+		UsartDiv =(u32)( ((u64)((u64)copy_UartCfg->Usart_u64Clock)*1000)/(8*copy_UartCfg->Usart_u16BaudRate));
 		UsartFraction = UsartDiv%1000;
 		UsartFraction *=8;
 	}
@@ -44,13 +42,13 @@ Usart_tenuErrorStatus Uart_enuInit(Uart_tCfg* copy_UartCfg)
 	Loc_ptrReg->USART_BRR=(UsartMantissa<<4)|UsartFraction;
 	Loc_ptrReg->USART_CR1&=~USART_u16CR1_CLR_MASK;
 	Loc_ptrReg->USART_CR1=(
-			copy_UartCfg->Usart_u32OverSampling|//Oversampling mode
-			copy_UartCfg->Usart_u32DataLength|	//This bit determines the word length. It is set or cleared by software.
+			copy_UartCfg->Usart_u16OverSampling|//Oversampling mode
+			copy_UartCfg->Usart_u16DataLength|	//This bit determines the word length. It is set or cleared by software.
 			//0: 1 Start bit, 8 Data bits, n Stop bit
 			//1: 1 Start bit, 9 Data bits, n Stop bit
-			copy_UartCfg->Usart_u32InterruptCtrl|//This bit enables/disables the interrupt.
-			copy_UartCfg->Usart_u32TransmitCtrl|//This bit enables/disables the transmitter.
-			copy_UartCfg->Usart_u32RecieveCtrl);//This bit enables/disables the receiver.
+			copy_UartCfg->Usart_u16InterruptCtrl|//This bit enables/disables the interrupt.
+			copy_UartCfg->Usart_u16TransmitCtrl|//This bit enables/disables the transmitter.
+			copy_UartCfg->Usart_u16RecieveCtrl);//This bit enables/disables the receiver.
 	Loc_ptrReg->USART_CR1|=USART_u16MASK_UE_ENABLE;//(enable uart) UE in CTRl1 reg
 
 	Loc_ptrReg->USART_CR2&=USART_u16CR2_CLR_MASK;
@@ -121,7 +119,7 @@ Usart_tenuErrorStatus Usart_enuSendDataAsync(u32 Copy_u32Data, void* Channel)
 
 
 /**Asynchronous Function to recieve byte from another mcu**/
-Usart_tenuErrorStatus Usart_enuRecieveDataAsync(void* Channel, pu32 Copy_u32AddResult)
+Usart_tenuErrorStatus Usart_enuRecieveDataAsync(void* Channel, pu8 Copy_u8AddResult)
 {
 	Usart_tenuErrorStatus Loc_enuErrorStatus = Usart_enuOk;
 	if (Channel == NULL)
@@ -131,7 +129,7 @@ Usart_tenuErrorStatus Usart_enuRecieveDataAsync(void* Channel, pu32 Copy_u32AddR
 	//polling till the RXNE flag is raised to one when data has been all shifted to the DR reg
 	else if(((Uart_tstrReg*)Channel)->USART_SR&USART_u16RXNE_MASK)
 	{
-		*Copy_u32AddResult=((Uart_tstrReg*)Channel)->USART_DR;
+		*Copy_u8AddResult=((Uart_tstrReg*)Channel)->USART_DR;
 	}
 	else
 	{
@@ -190,10 +188,11 @@ Usart_tenuErrorStatus Usart_enuTcInterruptCtrl(void* Copy_pvChannel, tenu_UsartI
 		switch (Copy_enuIntState)
 		{
 		case Usart_enuIntEnabled:
-			(((Uart_tstrReg*)Copy_pvChannel)->USART_CR1) |=USART_u16INTERRUPT_TC_ENABLE;
+			(((Uart_tstrReg*)Copy_pvChannel)->USART_CR1) |=USART_u16INT_TC_ENABLE;
 			break;
 		case Usart_enuIntDisabled:
-			(((Uart_tstrReg*)Copy_pvChannel)->USART_CR1) &=~(USART_u16INTERRUPT_TC_ENABLE);
+			(((Uart_tstrReg*)Copy_pvChannel)->USART_CR1) &=~(USART_u16INT_TC_ENABLE);
+			break;
 		}
 	}
 	return Loc_enuReturnStatus;
@@ -211,10 +210,11 @@ Usart_tenuErrorStatus Usart_enuRxInterruptCtrl(void* Copy_pvChannel, tenu_UsartI
 		switch (Copy_enuIntState)
 		{
 		case Usart_enuIntEnabled:
-			(((Uart_tstrReg*)Copy_pvChannel)->USART_CR1) |=USART_u16INTERRUPT_RXNE_ENABLE;
+			(((Uart_tstrReg*)Copy_pvChannel)->USART_CR1) |=USART_u16INT_RXNE_ENABLE;
 			break;
 		case Usart_enuIntDisabled:
-			(((Uart_tstrReg*)Copy_pvChannel)->USART_CR1) &=~(USART_u16INTERRUPT_RXNE_ENABLE);
+			(((Uart_tstrReg*)Copy_pvChannel)->USART_CR1) &=~(USART_u16INT_RXNE_ENABLE);
+			break;
 		}
 	}
 	return Loc_enuReturnStatus;
@@ -230,21 +230,7 @@ Usart_tenuErrorStatus Uart_enuRegisterHalCbf(pcbf Uart_pcbfManCallBack,u8 Copy_u
 	}
 	else
 	{
-		switch (Copy_u8BusNum)
-		{
-		case USART_BUSNUM_1:
-
-			Uart_pcbfManCbf[USART_BUSNUM_1]=Uart_pcbfManCallBack;
-			break;
-		case USART_BUSNUM_2:
-
-			Uart_pcbfManCbf[USART_BUSNUM_2]=Uart_pcbfManCallBack;
-			break;
-		case USART_BUSNUM_6:
-
-			Uart_pcbfManCbf[USART_BUSNUM_6]=Uart_pcbfManCallBack;
-			break;
-		}
+		Uart_pcbfManCbf[Copy_u8BusNum]=Uart_pcbfManCallBack;
 	}
 
 	return Loc_enuErrorStatus;
@@ -252,25 +238,24 @@ Usart_tenuErrorStatus Uart_enuRegisterHalCbf(pcbf Uart_pcbfManCallBack,u8 Copy_u
 /*********************************Handlers***************************************/
 void USART1_IRQHandler(void)
 {
-  if(Uart_pcbfManCbf[USART_BUSNUM_1])
+  if(Uart_pcbfManCbf[USART_BUS_NUMBER_1])
   {
-    Uart_pcbfManCbf[USART_BUSNUM_1]();
+    Uart_pcbfManCbf[USART_BUS_NUMBER_1]();
   }
 }
 void USART2_IRQHandler(void)
 {
-  if(Uart_pcbfManCbf[USART_BUSNUM_2])
+  if(Uart_pcbfManCbf[USART_BUS_NUMBER_2])
   {
-    Uart_pcbfManCbf[USART_BUSNUM_2]();
+    Uart_pcbfManCbf[USART_BUS_NUMBER_2]();
   }
 }
 void USART6_IRQHandler(void)
 {
-  if(Uart_pcbfManCbf[USART_BUSNUM_6])
-  { 
-    Uart_pcbfManCbf[USART_BUSNUM_6]();
+  if(Uart_pcbfManCbf[USART_BUS_NUMBER_6])
+  {
+    Uart_pcbfManCbf[USART_BUS_NUMBER_6]();
   }
 }
-
 
 
